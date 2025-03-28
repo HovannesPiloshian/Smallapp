@@ -1,138 +1,75 @@
 #include <iostream>
-#include <windows.h>
-#include <comdef.h>
-#include <Wbemidl.h>
+#include <string>
+#include <vector>
+#include <curl/curl.h>
+#include "ipp.h"  
 
 
-
-void getPrinterAttributes() {
-    HRESULT hres;
-
-  
-    hres = CoInitializeEx(0, COINIT_MULTITHREADED);
-    if (FAILED(hres)) {
-        std::cerr << "COM initialization failed. Error: 0x"
-                  << std::hex << hres << std::endl;
-        return;
-    }
-
-    
-    hres = CoInitializeSecurity(
-        NULL, -1, NULL, NULL,
-        RPC_C_AUTHN_LEVEL_DEFAULT,
-        RPC_C_IMP_LEVEL_IMPERSONATE,
-        NULL, EOAC_NONE, NULL
-    );
-    if (FAILED(hres)) {
-        std::cerr << "COM security initialization failed. Error: 0x"
-                  << std::hex << hres << std::endl;
-        CoUninitialize();
-        return;
-    }
-
-    IWbemLocator* pLoc = NULL;
-    hres = CoCreateInstance(
-        CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
-        IID_IWbemLocator, (LPVOID*)&pLoc
-    );
-    if (FAILED(hres)) {
-        std::cerr << "Failed to create IWbemLocator object. Error: 0x"
-                  << std::hex << hres << std::endl;
-        CoUninitialize();
-        return;
-    }
-
-    
-    IWbemServices* pSvc = NULL;
-    hres = pLoc->ConnectServer(
-        _bstr_t(L"ROOT\\CIMV2"), NULL, NULL, 0, NULL, 0, 0, &pSvc
-    );
-    if (FAILED(hres)) {
-        std::cerr << "Could not connect to WMI service. Error: 0x"
-                  << std::hex << hres << std::endl;
-        pLoc->Release();
-        CoUninitialize();
-        return;
-    }
-
-  
-    hres = CoSetProxyBlanket(
-        pSvc, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL,
-        RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE,
-        NULL, EOAC_NONE
-    );
-    if (FAILED(hres)) {
-        std::cerr << "Could not set security levels. Error: 0x"
-                  << std::hex << hres << std::endl;
-        pSvc->Release();
-        pLoc->Release();
-        CoUninitialize();
-        return;
-    }
-
-    
-    IEnumWbemClassObject* pEnumerator = NULL;
-    hres = pSvc->ExecQuery(
-        bstr_t("WQL"),
-        bstr_t("SELECT * FROM Win32_Printer"),
-        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-        NULL,
-        &pEnumerator
-    );
-    if (FAILED(hres)) {
-        std::cerr << "WMI Query Failed. Error: 0x"
-                  << std::hex << hres << std::endl;
-        pSvc->Release();
-        pLoc->Release();
-        CoUninitialize();
-        return;
-    }
-
-    
-    IWbemClassObject* pclsObj = NULL;
-    ULONG uReturn = 0;
-    while (pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturn) == S_OK) {
-        VARIANT vtProp;
-
-       
-        pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-        std::wcout << L"\nPrinter Name: " << vtProp.bstrVal << std::endl;
-        VariantClear(&vtProp);
-
-       
-        pclsObj->Get(L"PrinterStatus", 0, &vtProp, 0, 0);
-        std::wcout << L"Printer Status: " << vtProp.uintVal << std::endl;
-        VariantClear(&vtProp);
-
-       
-        pclsObj->Get(L"Location", 0, &vtProp, 0, 0);
-        if (vtProp.vt != VT_NULL) {
-            std::wcout << L"Location: " << vtProp.bstrVal << std::endl;
-        }
-        VariantClear(&vtProp);
-
-       
-        pclsObj->Get(L"DriverName", 0, &vtProp, 0, 0);
-        std::wcout << L"Driver Name: " << vtProp.bstrVal << std::endl;
-        VariantClear(&vtProp);
-
-       
-        pclsObj->Get(L"Default", 0, &vtProp, 0, 0);
-        std::wcout << L"Default Printer: " << (vtProp.boolVal ? L"Yes" : L"No") << std::endl;
-        VariantClear(&vtProp);
-
-        pclsObj->Release();
-    }
-
-    
-    pSvc->Release();
-    pLoc->Release();
-    pEnumerator->Release();
-    CoUninitialize();
+size_t writeCallback(void* contents, size_t size, size_t nmemb, std::string* userData) {
+    userData->append((char*)contents, size * nmemb);
+    return size * nmemb;
 }
 
-int main() {
-    std::cout << "Fetching printer attributes...\n";
-    getPrinterAttributes();
+
+void getPrinterAttributes(const std::string& printer_ip) {
+    std::string printer_uri = "http://" + printer_ip + ":631/ipp/printer";
+
+    
+    ipp::Request request(ipp::Operation::GetPrinterAttributes);
+    request.setPrinterURI("ipp://" + printer_ip + "/ipp/printer");
+
+    
+    std::vector<uint8_t> ipp_request = request.write();
+
+   
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        std::cerr << "Error: Could not initialize CURL" << std::endl;
+        return;
+    }
+
+    std::string response_data;
+    curl_easy_setopt(curl, CURLOPT_URL, printer_uri.c_str());
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ipp_request.data());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, ipp_request.size());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
+
+   
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        std::cerr << "Error: Failed to connect to printer (" << curl_easy_strerror(res) << ")" << std::endl;
+    } else {
+        std::cout << "IPP Response Received:\n" << response_data << std::endl;
+
+      
+        std::vector<uint8_t> ipp_response_data(response_data.begin(), response_data.end());
+        ipp::Response response;
+        if (response.read(ipp_response_data)) {
+            std::cout << "Printer Attributes:" << std::endl;
+            for (const auto& attr : response.getAttributes()) {
+                std::cout << attr.first << ": ";
+                for (const auto& value : attr.second) {
+                    std::cout << value.toString() << " ";
+                }
+                std::cout << std::endl;
+            }
+        } else {
+            std::cerr << "Failed to parse IPP response." << std::endl;
+        }
+    }
+
+    curl_easy_cleanup(curl);
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <printer_ip>" << std::endl;
+        return 1;
+    }
+
+    std::string printer_ip = argv[1];
+    getPrinterAttributes(printer_ip);
     return 0;
 }
