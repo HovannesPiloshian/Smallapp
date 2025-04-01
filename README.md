@@ -1,95 +1,151 @@
-# Printer Attribute Fetcher
+Printer Attribute Fetcher
 
-## Overview
+Overview
+
 This C++ program retrieves and displays attributes from an IPP (Internet Printing Protocol) compatible printer using CURL and the IPP library.
 
-## Features
-- Sends an IPP request to the printer to fetch attributes.
-- Uses CURL for HTTP communication.
-- Parses and displays printer attributes.
+Features
 
-## Prerequisites
+Sends an IPP request to the printer to fetch attributes.
+
+Uses CURL for HTTP communication.
+
+Parses and displays printer attributes.
+
+
+Prerequisites
+
 Ensure you have the following dependencies installed:
-- A C++ compiler supporting C++11 or later.
-- [CURL](https://curl.se/) development library.
-- [IPP library](https://www.cups.org/) for handling IPP requests.
-- [Visual Studio Code](https://code.visualstudio.com/) with the C++ extension.
 
-## Installation
+A C++ compiler supporting C++11 or later.
+
+CURL development library.
+
+IPP library for handling IPP requests.
+
+Visual Studio Code with the C++ extension.
+
+
+Installation
+
 1. Install necessary dependencies:
-   ```sh
-   sudo apt-get install libcurl4-openssl-dev
-   ```
+
+sudo apt-get install libcurl4-openssl-dev
+
+
 2. Clone or download the source code.
+
+
 3. Ensure the IPP library is installed and properly linked.
 
-## Setting Up in Visual Studio Code
-1. Open Visual Studio Code and install the **C/C++ Extension** from Microsoft.
+
+
+Setting Up in Visual Studio Code
+
+1. Open Visual Studio Code and install the C/C++ Extension from Microsoft.
+
+
 2. Open the project folder in VSC.
-3. Create a **tasks.json** file inside the `.vscode` folder:
-   ```json
-   {
-       "version": "2.0.0",
-       "tasks": [
-           {
-               "label": "Build",
-               "type": "shell",
-               "command": "g++",
-               "args": [
-                   "-o", "printer_attributes",
-                   "printer_attributes.cpp",
-                   "-lcurl"
-               ],
-               "group": {
-                   "kind": "build",
-                   "isDefault": true
-               }
-           }
-       ]
-   }
-   ```
-4. Create a **launch.json** file inside the `.vscode` folder for debugging:
-   ```json
-   {
-       "version": "0.2.0",
-       "configurations": [
-           {
-               "name": "Run Printer Attributes",
-               "type": "cppdbg",
-               "request": "launch",
-               "program": "${workspaceFolder}/printer_attributes",
-               "args": ["192.168.1.100"],
-               "cwd": "${workspaceFolder}",
-               "environment": [],
-               "externalConsole": true,
-               "MIMode": "gdb"
-           }
-       ]
-   }
-   ```
-5. Build the project by running **Terminal > Run Task > Build**.
-6. Run the program via the **Run and Debug** panel.
 
-## Compilation (Manual)
+
+3. Create a tasks.json file inside the .vscode folder:
+
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-o", "printer_attributes",
+                "printer_attributes.cpp",
+                "-lcurl"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
+
+
+4. Create a launch.json file inside the .vscode folder for debugging:
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Printer Attributes",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/printer_attributes",
+            "args": ["192.168.1.100"],
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb"
+        }
+    ]
+}
+
+
+5. Build the project by running Terminal > Run Task > Build.
+
+
+6. Run the program via the Run and Debug panel.
+
+
+
+Compilation (Manual)
+
 If not using VSC tasks, you can manually compile the program with:
-```sh
+
 g++ -o printer_attributes printer_attributes.cpp -lcurl
-```
 
-## Usage
+Usage
+
 Run the program with the printer's IP address:
-```sh
-./printer_attributes <printer_ip>
-```
-Example:
-```sh
-./printer_attributes 192.168.1.100
-```
 
-## Code Explanation
-- **writeCallback**: Handles HTTP response data.
-- **getPrinterAttributes**: Constructs an IPP request, sends it via CURL, and parses the response.
-- **main**: Accepts printer IP as a command-line argument and calls `getPrinterAttributes`.
+./printer_attributes <printer_ip>
+
+Example:
+
+./printer_attributes 192.168.1.100
+
+Example Output
+
+Printer Attributes:
+- Model: HP LaserJet Pro
+- Status: Online
+- Resolution: 600 DPI
+
+Contributing
+
+Contributions are welcome! If you'd like to help improve this project, please submit a pull request or open an issue.
+
+Reporting Issues
+
+If you encounter any problems, please open an issue in the GitHub repository.
+
+Roadmap
+
+Add support for more IPP attributes.
+
+Improve error handling for network failures.
+
+Provide a graphical interface for better user experience.
+
+
+Code Explanation
+
+writeCallback: Handles HTTP response data.
+
+getPrinterAttributes: Constructs an IPP request, sends it via CURL, and parses the response.
+
+main: Accepts printer IP as a command-line argument and calls getPrinterAttributes.
+
 
 
 
