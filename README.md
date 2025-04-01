@@ -97,13 +97,6 @@ Setting Up in Visual Studio Code
 6. Run the program via the Run and Debug panel.
 
 
-
-Compilation (Manual)
-
-If not using VSC tasks, you can manually compile the program with:
-
-g++ -o printer_attributes printer_attributes.cpp -lcurl
-
 Usage
 
 Run the program with the printer's IP address:
@@ -120,22 +113,6 @@ Printer Attributes:
 - Model: HP LaserJet Pro
 - Status: Online
 - Resolution: 600 DPI
-
-Contributing
-
-Contributions are welcome! If you'd like to help improve this project, please submit a pull request or open an issue.
-
-Reporting Issues
-
-If you encounter any problems, please open an issue in the GitHub repository.
-
-Roadmap
-
-Add support for more IPP attributes.
-
-Improve error handling for network failures.
-
-Provide a graphical interface for better user experience.
 
 
 Code Explanation
