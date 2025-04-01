@@ -28,15 +28,16 @@ Visual Studio Code with the C++ extension.
 
 Installation
 
-1. Install necessary dependencies:
+1. Install necessary dependencies for Windows using vcpkg:
 
-sudo apt-get install libcurl4-openssl-dev
+vcpkg install curl
+vcpkg install ipp
 
 
 2. Clone or download the source code.
 
 
-3. Ensure the IPP library is installed and properly linked.
+3. Ensure the necessary libraries are linked correctly within Visual Studio Code.
 
 
 
