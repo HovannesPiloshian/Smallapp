@@ -97,6 +97,7 @@ Setting Up in Visual Studio Code
 6. Run the program via the Run and Debug panel.
 
 
+
 Usage
 
 Run the program with the printer's IP address:
@@ -113,7 +114,6 @@ Printer Attributes:
 - Model: HP LaserJet Pro
 - Status: Online
 - Resolution: 600 DPI
-
 
 Code Explanation
 
