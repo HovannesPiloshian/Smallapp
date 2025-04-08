@@ -15,7 +15,7 @@ Parses and displays printer attributes.
 
 ## Prerequisites
 Ensure you have the following dependencies installed:
-- A C++ compiler supporting C++11 or later.
+- A C++ compiler supporting C++ v11 or later.
 - CURL development library.
 - IPP library for handling IPP requests.
 - Visual Studio Code with the C++ extension.
